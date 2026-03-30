@@ -3,43 +3,39 @@ on: [push, workflow_dispatch]
 
 jobs:
   void-build:
-    # We drop the container block entirely!
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Enable User Namespaces (Fix for Ubuntu runners)
+        run: |
+          # GitHub's Ubuntu runners block the namespaces xbps-src needs.
+          # This sysctl command turns them back on for the duration of the build!
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       - name: Install Void Package Manager (Static)
         run: |
-          # 1. Download Void's official standalone XBPS tools
           curl -LO https://repo-default.voidlinux.org/static/xbps-static-latest.x86_64-musl.tar.xz
-          
-          # 2. Extract it to the runner's home directory
           mkdir -p ~/xbps
           tar xf xbps-static-latest.x86_64-musl.tar.xz -C ~/xbps
-          
-          # 3. Add it to GitHub Actions' internal PATH
           echo "$HOME/xbps/usr/bin" >> $GITHUB_PATH
 
       - name: Configure xbps-src
         run: |
-          # Allow building proprietary packages like Google Chrome
           echo "XBPS_ALLOW_RESTRICTED=yes" >> etc/conf
 
       - name: Bootstrap xbps-src
         run: |
-          # Create a standard x86_64 (glibc) environment right on the Ubuntu runner
           ./xbps-src -A x86_64 binary-bootstrap
 
       - name: Build Google Chrome
         run: |
-          # Build the package!
           ./xbps-src -A x86_64 pkg google-chrome
 
       - name: Upload .xbps Artifact
         uses: actions/upload-artifact@v4
         with:
           name: google-chrome-package
-          # Grab all .xbps files, even if they are placed in a subdirectory
           path: hostdir/binpkgs/**/*.xbps
