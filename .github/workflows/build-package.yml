@@ -5,35 +5,34 @@ jobs:
   void-build:
     runs-on: ubuntu-latest
     
-    # This is the "Environment Setup"
     container:
       image: ghcr.io/void-linux/void-glibc-full:latest
-      options: --privileged # Vital for xbps-src to create its chroot
-
-    env:
-      ALLOW_CHROOT_AS_ROOT: 1
-      XBPS_CHROOT_CMD: ethereal   
+      options: --privileged
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Prepare XBPS
+      - name: Prepare XBPS and Config
         run: |
-          # Update the container's package manager first
+          # 1. Update the container
           xbps-install -Syu || xbps-install -yu xbps
-          # Install basic tools needed for the builder
           xbps-install -y git bash curl
 
+          # 2. Force the configuration into etc/conf (This bypasses the root check)
+          echo "ALLOW_CHROOT_AS_ROOT=1" >> etc/conf
+          echo "XBPS_CHROOT_CMD=ethereal" >> etc/conf
+          
+          # 3. Fix permissions for the workspace (needed for some container setups)
+          git config --global --add safe.directory /__w/void-packages/void-packages
+
       - name: Bootstrap xbps-src
-        run: |
-          # Use binary bootstrap to save hours of time
-          ./xbps-src binary-bootstrap
+        run: ./xbps-src binary-bootstrap
 
       - name: Build My Package
         run: |
-          # Replace 'YOUR_PACKAGE_NAME' with your actual package
-          ./xbps-src pkg google-chrome
+          # !!! CHANGE 'YOUR_PACKAGE_NAME' TO THE ACTUAL PACKAGE NAME !!!
+          ./xbps-src pkg YOUR_PACKAGE_NAME
 
       - name: Upload .xbps Artifact
         uses: actions/upload-artifact@v4
