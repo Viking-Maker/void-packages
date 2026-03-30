@@ -1,0 +1,48 @@
+name: Build Any Package
+on:
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'Which package do you want to build?'
+        required: true
+        default: 'orcaslicer'
+
+jobs:
+  void-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Enable User Namespaces (Fix for Ubuntu runners)
+        run: |
+          # GitHub's Ubuntu runners block the namespaces xbps-src needs.
+          # This sysctl command turns them back on for the duration of the build!
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Install Void Package Manager (Static)
+        run: |
+          curl -LO https://repo-default.voidlinux.org/static/xbps-static-latest.x86_64-musl.tar.xz
+          mkdir -p ~/xbps
+          tar xf xbps-static-latest.x86_64-musl.tar.xz -C ~/xbps
+          echo "$HOME/xbps/usr/bin" >> $GITHUB_PATH
+
+      - name: Configure xbps-src
+        run: |
+          echo "XBPS_ALLOW_RESTRICTED=yes" >> etc/conf
+
+      - name: Bootstrap xbps-src
+        run: |
+          ./xbps-src -A x86_64 binary-bootstrap
+
+      - name: Build Google Chrome
+        run: |
+          # Use the input variable from the dropdown menu
+          ./xbps-src -A x86_64 pkg ${{ github.event.inputs.package_name }}
+
+      - name: Upload .xbps Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.inputs.package_name }}-package
+          path: hostdir/binpkgs/**/*.xbps
