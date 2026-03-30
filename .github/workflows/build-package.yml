@@ -1,5 +1,5 @@
 name: Build Package
-on: [push, workflow_dispatch]
+on: [workflow_dispatch]
 
 jobs:
   void-build:
