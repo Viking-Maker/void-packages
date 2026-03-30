@@ -5,9 +5,16 @@ revision=1
 build_style=cmake
 # Limit cores to prevent GitHub Actions from running out of RAM
 make_build_args="-j2"
-configure_args="-DOPENVDB_FIND_MODULE_PATH=/usr/lib/cmake/OpenVDB -DBAMBU_COMMUNITY=ON"
+# We explicitly tell CMake where to find libnoise and OpenVDB
+configure_args="
+ -DBAMBU_COMMUNITY=ON
+ -DOPENVDB_FIND_MODULE_PATH=/usr/lib/cmake/OpenVDB
+ -DLIBNOISE_INCLUDE_DIR=/usr/include/noise
+ -DLIBNOISE_LIBRARY=/usr/lib/libnoise.so"
 hostmakedepends="autoconf automake cereal cmake extra-cmake-modules eigen gettext git pkg-config libtool ninja texinfo"
-makedepends="glew-devel libgstreamerd-devel gtk+3-devel libmspack-devel libsecret-devel libspnav-devel openssl-devel eudev-libudev-devel libwebkit2gtk41-devel boost-devel tbb-devel libcurl-devel glfw-devel nlopt-devel openvdb-devel cgal-devel libopencv-devel occt-devel libnoise-devel"
+makedepends="glew-devel gstreamer1-devel gtk+3-devel libmspack-devel libsecret-devel libspnav-devel 
+ openssl-devel eudev-libudev-devel webkit2gtk4.1-devel boost-devel tbb-devel libcurl-devel 
+ glfw-devel nlopt-devel openvdb-devel cgal-devel opencv-devel opencascade-devel libnoise-devel"
 depends="file wget"
 short_desc="G-code generator for 3D printers"
 maintainer="Soulful Sailer <soulful.sailer@entropic.pro>"
@@ -19,7 +26,6 @@ wrksrc="OrcaSlicer-${version}"
 
 post_patch() {
 	# Boost 1.89/1.90+ removed the boost_system stub library, as it is now header-only.
-	# We use Void's vsed to remove 'system' from the Boost requirements in CMake.
 	vsed -i 's/COMPONENTS system /COMPONENTS /g' CMakeLists.txt
 }
 
