@@ -36,7 +36,7 @@ jobs:
         run: |
           ./xbps-src -A x86_64 binary-bootstrap
 
-      - name: Build Google Chrome
+      - name: Build ${{ github.event.inputs.package_name }}
         run: |
           # Use the input variable from the dropdown menu
           ./xbps-src -A x86_64 pkg ${{ github.event.inputs.package_name }}
