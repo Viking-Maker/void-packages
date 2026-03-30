@@ -32,7 +32,7 @@ jobs:
       - name: Build My Package
         run: |
           # !!! CHANGE 'YOUR_PACKAGE_NAME' TO THE ACTUAL PACKAGE NAME !!!
-          ./xbps-src pkg YOUR_PACKAGE_NAME
+          ./xbps-src pkg google-chrome
 
       - name: Upload .xbps Artifact
         uses: actions/upload-artifact@v4
