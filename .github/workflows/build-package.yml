@@ -13,26 +13,33 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Prepare XBPS
+      - name: Prepare Environment and User
         run: |
+          # 1. Update and install 'shadow' (needed for useradd)
           xbps-install -Syu || xbps-install -yu xbps
-          xbps-install -y git bash curl
+          xbps-install -y git bash curl shadow
+
+          # 2. Create a non-root user named 'builder'
+          useradd builder
+
+          # 3. Give 'builder' ownership of the repository
+          chown -R builder:builder .
+
+          # 4. Enable restricted packages (REQUIRED for Google Chrome)
+          echo "XBPS_ALLOW_RESTRICTED=yes" >> etc/conf
 
       - name: Bootstrap xbps-src
-        # We pass the variable directly before the command here
         run: |
-          export ALLOW_CHROOT_AS_ROOT=1
-          ./xbps-src binary-bootstrap
+          # Run bootstrap as the 'builder' user
+          su builder -c "./xbps-src binary-bootstrap"
 
-      - name: Build My Package
+      - name: Build Google Chrome
         run: |
-          export ALLOW_CHROOT_AS_ROOT=1
-          # Use the -E flag (Ethereal mode) which is designed for CI/Docker
-          # IMPORTANT: Change 'YOUR_PACKAGE_NAME' to the actual name (e.g., htop)
-          ./xbps-src -E pkg google-chrome
+          # Run the build as 'builder' using Ethereal mode (-E)
+          su builder -c "./xbps-src -E pkg google-chrome"
 
       - name: Upload .xbps Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: xbps-packages
+          name: google-chrome-package
           path: hostdir/binpkgs/*.xbps
