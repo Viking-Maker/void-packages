@@ -10,18 +10,22 @@ homepage="https://libnoise.sourceforge.net/"
 distfiles="${SOURCEFORGE_SITE}/libnoise/libnoisesrc-${version}.zip"
 checksum=34ed402f43f30ce5e39812642c9533c11082cd2bc092341c65160f5c743be95b
 
+# The zip file extracts into a folder named 'noise'
+wrksrc="noise"
+
 post_extract() {
-	# The original Makefile is severely broken and unmaintained.
-	# We generate a standard CMakeLists.txt to build the shared library safely.
+	# We use a broader glob (*.cpp) to ensure we find the source files
 	cat <<-'EOF' > CMakeLists.txt
 		cmake_minimum_required(VERSION 3.5)
 		project(libnoise)
-		file(GLOB_RECURSE SOURCES src/*.cpp)
+		file(GLOB_RECURSE SOURCES *.cpp)
 		add_library(noise SHARED ${SOURCES})
-		target_include_directories(noise PUBLIC src)
+		target_include_directories(noise PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 		set_target_properties(noise PROPERTIES SOVERSION 0 VERSION 1.0.0)
 		install(TARGETS noise DESTINATION lib)
-		install(DIRECTORY src/ DESTINATION include/noise FILES_MATCHING PATTERN "*.h")
+		# Install all headers into include/noise
+		file(GLOB_RECURSE HEADERS *.h)
+		install(FILES ${HEADERS} DESTINATION include/noise)
 	EOF
 }
 
