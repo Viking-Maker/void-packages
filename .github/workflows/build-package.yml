@@ -9,34 +9,30 @@ jobs:
       image: ghcr.io/void-linux/void-glibc-full:latest
       options: --privileged
 
+    # This sets the variables for EVERY step in the job
+    env:
+      ALLOW_CHROOT_AS_ROOT: "1"
+      XBPS_ALLOW_RESTRICTED: "yes"
+      XBPS_CHROOT_CMD: "ethereal"
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Prepare Environment and User
+      - name: Prepare XBPS
         run: |
-          # 1. Update and install 'shadow' (needed for useradd)
           xbps-install -Syu || xbps-install -yu xbps
-          xbps-install -y git bash curl shadow
-
-          # 2. Create a non-root user named 'builder'
-          useradd builder
-
-          # 3. Give 'builder' ownership of the repository
-          chown -R builder:builder .
-
-          # 4. Enable restricted packages (REQUIRED for Google Chrome)
-          echo "XBPS_ALLOW_RESTRICTED=yes" >> etc/conf
+          xbps-install -y git bash curl
 
       - name: Bootstrap xbps-src
         run: |
-          # Run bootstrap as the 'builder' user
-          su builder -c "./xbps-src binary-bootstrap"
+          # The -E flag here is the secret sauce for GitHub Actions
+          ./xbps-src -E binary-bootstrap
 
       - name: Build Google Chrome
         run: |
-          # Run the build as 'builder' using Ethereal mode (-E)
-          su builder -c "./xbps-src -E pkg google-chrome"
+          # We build using -E (Ethereal mode)
+          ./xbps-src -E pkg google-chrome
 
       - name: Upload .xbps Artifact
         uses: actions/upload-artifact@v4
