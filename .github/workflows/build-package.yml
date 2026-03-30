@@ -13,26 +13,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Prepare XBPS and Config
+      - name: Prepare XBPS
         run: |
-          # 1. Update the container
           xbps-install -Syu || xbps-install -yu xbps
           xbps-install -y git bash curl
 
-          # 2. Force the configuration into etc/conf (This bypasses the root check)
-          echo "ALLOW_CHROOT_AS_ROOT=1" >> etc/conf
-          echo "XBPS_CHROOT_CMD=ethereal" >> etc/conf
-          
-          # 3. Fix permissions for the workspace (needed for some container setups)
-          git config --global --add safe.directory /__w/void-packages/void-packages
-
       - name: Bootstrap xbps-src
-        run: ./xbps-src binary-bootstrap
+        # We pass the variable directly before the command here
+        run: |
+          export ALLOW_CHROOT_AS_ROOT=1
+          ./xbps-src binary-bootstrap
 
       - name: Build My Package
         run: |
-          # !!! CHANGE 'YOUR_PACKAGE_NAME' TO THE ACTUAL PACKAGE NAME !!!
-          ./xbps-src pkg google-chrome
+          export ALLOW_CHROOT_AS_ROOT=1
+          # Use the -E flag (Ethereal mode) which is designed for CI/Docker
+          # IMPORTANT: Change 'YOUR_PACKAGE_NAME' to the actual name (e.g., htop)
+          ./xbps-src -E pkg google-chrome
 
       - name: Upload .xbps Artifact
         uses: actions/upload-artifact@v4
