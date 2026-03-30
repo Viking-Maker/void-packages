@@ -1,0 +1,38 @@
+name: Build Package
+on: [push, workflow_dispatch]
+
+jobs:
+  void-build:
+    runs-on: ubuntu-latest
+    
+    # This is the "Environment Setup"
+    container:
+      image: ghcr.io/void-linux/void-glibc-full:latest
+      options: --privileged # Vital for xbps-src to create its chroot
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Prepare XBPS
+        run: |
+          # Update the container's package manager first
+          xbps-install -Syu || xbps-install -yu xbps
+          # Install basic tools needed for the builder
+          xbps-install -y git bash curl
+
+      - name: Bootstrap xbps-src
+        run: |
+          # Use binary bootstrap to save hours of time
+          ./xbps-src binary-bootstrap
+
+      - name: Build My Package
+        run: |
+          # Replace 'YOUR_PACKAGE_NAME' with your actual package
+          ./xbps-src pkg google-chrome
+
+      - name: Upload .xbps Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xbps-packages
+          path: hostdir/binpkgs/*.xbps
