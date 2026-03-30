@@ -9,30 +9,39 @@ jobs:
       image: ghcr.io/void-linux/void-glibc-full:latest
       options: --privileged
 
-    # This sets the variables for EVERY step in the job
-    env:
-      ALLOW_CHROOT_AS_ROOT: "1"
-      XBPS_ALLOW_RESTRICTED: "yes"
-      XBPS_CHROOT_CMD: "ethereal"
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Prepare XBPS
+      - name: Prepare CI Environment
         run: |
+          # 1. Update XBPS and install required tools (including sudo)
           xbps-install -Syu || xbps-install -yu xbps
-          xbps-install -y git bash curl
+          xbps-install -y sudo bash curl git xz
 
-      - name: Bootstrap xbps-src
-        run: |
-          # The -E flag here is the secret sauce for GitHub Actions
-          ./xbps-src -E binary-bootstrap
+          # 2. Create the unprivileged 'builder' user
+          useradd -m builder
+
+          # 3. Allow 'builder' to use sudo without a password
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+          # 4. Give 'builder' ownership of the GitHub checkout directory
+          chown -R builder:builder .
+
+          # 5. Configure xbps-src to use Ethereal mode and allow restricted packages
+          echo "XBPS_CHROOT_CMD=ethereal" >> etc/conf
+          echo "XBPS_ALLOW_CHROOT_BREAKOUT=yes" >> etc/conf
+          echo "XBPS_ALLOW_RESTRICTED=yes" >> etc/conf
+
+          # 6. CRITICAL: Link the container's root to masterdir. 
+          # This tells xbps-src "the container IS the masterdir", skipping the need to bootstrap!
+          ln -s / masterdir
 
       - name: Build Google Chrome
         run: |
-          # We build using -E (Ethereal mode)
-          ./xbps-src -E pkg google-chrome
+          # Run the build as the 'builder' user. 
+          # We NO LONGER need the bootstrap step!
+          sudo -u builder ./xbps-src pkg google-chrome
 
       - name: Upload .xbps Artifact
         uses: actions/upload-artifact@v4
