@@ -1,4 +1,4 @@
-name: Build Any Package
+name: Build OrcaSlicer
 on:
   workflow_dispatch:
     inputs:
