@@ -5,7 +5,7 @@ revision=1
 build_style=cmake
 # Limit cores to prevent GitHub Actions from running out of RAM
 make_build_args="-j2"
-# Provide explicit paths for Void-specific library names
+# We bypass OrcaSlicer's broken search script by providing the exact "Release" path
 configure_args="
  -DBAMBU_COMMUNITY=ON
  -DOPENVDB_FIND_MODULE_PATH=/usr/lib/cmake/OpenVDB
@@ -13,10 +13,7 @@ configure_args="
  -DLIBNOISE_LIBRARY_RELEASE=/usr/lib/libnoise.so
  -DwxWidgets_CONFIG_EXECUTABLE=/usr/bin/wx-config-gtk3"
 hostmakedepends="autoconf automake cereal cmake extra-cmake-modules eigen gettext git pkg-config libtool ninja texinfo"
-makedepends="glew-devel gstreamer1-devel gst-plugins-base1-devel gtk+3-devel libmspack-devel 
- libsecret-devel libspnav-devel openssl-devel eudev-libudev-devel libwebkit2gtk41-devel 
- boost-devel tbb-devel libcurl-devel glfw-devel nlopt-devel openvdb-devel cgal-devel 
- libopencv-devel occt-devel libnoise-devel draco-devel wxWidgets-gtk3-devel"
+makedepends="glew-devel gstreamer1-devel gst-plugins-base1-devel gtk+3-devel libmspack-devel libsecret-devel libspnav-devel openssl-devel eudev-libudev-devel libwebkit2gtk41-devel boost-devel tbb-devel libcurl-devel glfw-devel nlopt-devel openvdb-devel cgal-devel libopencv-devel occt-devel libnoise-devel draco-devel wxWidgets-gtk3-devel"
 depends="file wget"
 short_desc="G-code generator for 3D printers"
 maintainer="Soulful Sailer <soulful.sailer@entropic.pro>"
@@ -29,6 +26,10 @@ wrksrc="OrcaSlicer-${version}"
 post_patch() {
 	# Boost 1.89/1.90+ removed the boost_system stub library, as it is now header-only.
 	vsed -i 's/COMPONENTS system /COMPONENTS /g' CMakeLists.txt
+
+	# Fix GCC 14 strict compilation error with CGAL 5.6+ AABB_tree objects.
+	# We safely comment out the memory reserve() optimization that triggers the panic.
+	vsed -i 's/result.reserve(models.size());/\/\/result.reserve(models.size());/g' src/libslic3r/CutSurface.cpp
 }
 
 post_install() {
