@@ -1,0 +1,15 @@
+# Template file for 'thorium-browser'
+pkgname=thorium-browser
+version=138.0.7204.303
+#revision=1
+#build_style=cmake
+#hostmakedepends="autoconf automake cereal cmake extra-cmake-modules eigen gettext git pkg-config libtool ninja texinfo"
+#makedepends="glew-devel gstreamer1-devel gst-plugins-base1-devel gtk+3-devel libmspack-devel libsecret-devel libspnav-devel openssl-devel eudev-libudev-devel webkit2gtk-4.1-devel boost-devel tbb-devel libcurl-devel glfw-devel nlopt-devel openvdb-devel cgal-devel opencv-devel opencascade-devel libnoise-devel draco-devel wxWidgets-gtk3-devel"
+#depends="file wget"
+short_desc="Chromium fork focused on high performance and security"
+maintainer="Viking Maker <vikingmaker@outlook.com>"
+license="BSD-3-Clause"
+homepage="https://github.com/Alex313031/thorium"
+#distfiles="https://github.com/OrcaSlicer/OrcaSlicer/archive/refs/tags/v${version}.tar.gz"
+#checksum=2c7eea7b1e3757011f2c9520dc1712d789b9182b5c276aba271bf814172b0a52
+#wrksrc="OrcaSlicer-${version}"
