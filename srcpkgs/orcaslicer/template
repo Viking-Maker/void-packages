@@ -9,9 +9,8 @@ make_build_args="-j2"
 configure_args="
  -DBAMBU_COMMUNITY=ON
  -DOPENVDB_FIND_MODULE_PATH=/usr/lib/cmake/OpenVDB
- -DLIBNOISE_INCLUDE_DIR=/usr/include/noise
- -DLIBNOISE_LIBRARY=/usr/lib/libnoise.so
- -Dlibnoise_LIB_FOUND=/usr/include/noise"
+ -DLIBNOISE_INCLUDE_DIR=/usr/include
+ -Dlibnoise_LIB=/usr/lib/libnoise.so"
 hostmakedepends="autoconf automake cereal cmake extra-cmake-modules eigen gettext git pkg-config libtool ninja texinfo"
 makedepends="glew-devel gstreamer1-devel gst-plugins-base1-devel gtk+3-devel libmspack-devel 
  libsecret-devel libspnav-devel openssl-devel eudev-libudev-devel libwebkit2gtk41-devel 
