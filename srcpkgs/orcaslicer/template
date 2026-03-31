@@ -2,18 +2,10 @@
 pkgname=orcaslicer
 version=2.3.2
 revision=1
-build_style=cmake
-# Limit cores to prevent GitHub Actions from running out of RAM
-make_build_args="-j2"
-# We bypass OrcaSlicer's broken search script by providing the exact "Release" path
-configure_args="
- -DBAMBU_COMMUNITY=ON
- -DOPENVDB_FIND_MODULE_PATH=/usr/lib/cmake/OpenVDB
- -DLIBNOISE_INCLUDE_DIR=/usr/include/noise
- -DLIBNOISE_LIBRARY_RELEASE=/usr/lib/libnoise.so
- -DwxWidgets_CONFIG_EXECUTABLE=/usr/bin/wx-config-gtk3"
-hostmakedepends="autoconf automake cereal cmake extra-cmake-modules eigen gettext git pkg-config libtool ninja texinfo"
-makedepends="glew-devel gstreamer1-devel gst-plugins-base1-devel gtk+3-devel libmspack-devel libsecret-devel libspnav-devel openssl-devel eudev-libudev-devel libwebkit2gtk41-devel boost-devel tbb-devel libcurl-devel glfw-devel nlopt-devel openvdb-devel cgal-devel libopencv-devel occt-devel libnoise-devel draco-devel wxWidgets-gtk3-devel"
+hostmakedepends="autoconf automake cmake extra-cmake-modules gettext git pkg-config libtool ninja m4"
+# Using YOUR verified Void package names for the system UI/graphics libraries.
+# We removed boost, cgal, openvdb, etc. because the AUR method compiles them locally.
+makedepends="glew-devel gstreamer1-devel gst-plugins-base1-devel gtk+3-devel libmspack-devel libsecret-devel libspnav-devel openssl-devel eudev-libudev-devel libwebkit2gtk41-devel libcurl-devel glfw-devel wayland-protocols"
 depends="file wget"
 short_desc="G-code generator for 3D printers"
 maintainer="Soulful Sailer <soulful.sailer@entropic.pro>"
@@ -24,16 +16,41 @@ checksum=2c7eea7b1e3757011f2c9520dc1712d789b9182b5c276aba271bf814172b0a52
 wrksrc="OrcaSlicer-${version}"
 
 post_patch() {
-	# Boost 1.89/1.90+ removed the boost_system stub library, as it is now header-only.
-	vsed -i 's/COMPONENTS system /COMPONENTS /g' CMakeLists.txt
-
-	# Fix GCC 14 strict compilation error with CGAL 5.6+ AABB_tree objects.
-	# We avoid vector reallocation entirely by resizing once and assigning elements in-place.
-	# This bypasses the static_assert panic on the missing noexcept move constructor.
-	vsed -i 's/result.reserve(models.size());/size_t __idx = 0; result.resize(models.size());/g' src/libslic3r/CutSurface.cpp
-	vsed -i 's/result.emplace_back(std::move(tree));/result[__idx++] = std::move(tree);/g' src/libslic3r/CutSurface.cpp
+	# Force OrcaSlicer to use our basic Void system libraries (curl, openssl, etc.)
+	# instead of downloading them, while allowing it to download CGAL, OpenVDB, etc.
+	vsed -i 's/if(FLATPAK)/if(true)/' deps/CMakeLists.txt
 }
 
-post_install() {
+do_build() {
+	# 1. Compile the bundled dependencies (CGAL 5.2.2, OpenVDB, libnoise, etc.)
+	mkdir -p deps/build
+	cd deps/build
+	cmake .. -G Ninja \
+		-DDESTDIR="${wrksrc}/deps/build/destdir" \
+		-DDEP_DOWNLOAD_DIR="${wrksrc}/deps/DL_CACHE" \
+		-DDEP_WX_GTK3=ON
+	ninja -j 2
+
+	# 2. Compile OrcaSlicer using those downloaded, perfectly-compatible dependencies
+	cd ${wrksrc}
+	mkdir -p build
+	cd build
+	cmake .. -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_FULL_DATAROOTDIR=/usr/share/ \
+		-DCMAKE_PREFIX_PATH="${wrksrc}/deps/build/destdir/usr/local" \
+		-DSLIC3R_STATIC=1 \
+		-DORCA_TOOLS=1 \
+		-DSLIC3R_FHS=1 \
+		-DSLIC3R_GTK=3 \
+		-DBAMBU_COMMUNITY=ON
+	ninja -j 2
+}
+
+do_install() {
+	cd ${wrksrc}/build
+	DESTDIR=${DESTDIR} ninja install
+	
+	cd ${wrksrc}
 	vlicense LICENSE.txt
 }
