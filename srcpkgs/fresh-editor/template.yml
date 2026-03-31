@@ -1,0 +1,42 @@
+# Template file for 'fresh-editor'
+pkgname=fresh-editor
+version=0.2.20
+revision=1
+build_style=cargo
+hostmakedepends="clang pkg-config"
+# Note: Rust projects often need openssl or other libs; 
+# if it fails later, we might need to add them here.
+short_desc="Lightweight terminal-based text editor with LSP and TypeScript plugins"
+maintainer="Viking Maker <vikingmaker@outlook.com>"
+license="GPL-2.0-only"
+homepage="https://sinelaw.github.io/fresh/"
+# We use the specific source tarball mentioned in the AUR for better stability
+distfiles="https://github.com/sinelaw/fresh/releases/download/v${version}/fresh-editor-${version}-source.tar.gz"
+checksum=a68a90eca2a4cc7a75a6c257dc1dc3b72038cd0cf2db4c1bdde1e255c2ebc75f
+# The AUR says the folder inside the zip is named fresh-0.2.20
+wrksrc="fresh-${version}"
+
+export CC=clang
+
+do_install() {
+	# Binary: vbin handles installing to /usr/bin/ and setting permissions
+	vbin target/release/fresh
+
+	# Plugins and Keymaps: vcopy copies directories to /usr/share/fresh-editor/
+	vmkdir usr/share/fresh-editor
+	vcopy crates/fresh-editor/plugins usr/share/fresh-editor
+	vcopy crates/fresh-editor/keymaps usr/share/fresh-editor
+
+	# Documentation and License
+	vdoc README.md
+	vlicense LICENSE
+
+	# Desktop file: vinstall is the equivalent of 'install -Dm644'
+	vinstall crates/fresh-editor/resources/fresh.desktop 644 usr/share/applications
+
+	# Icons: Void templates can use standard shell loops
+	for size in 16 32 48 64 128 256; do
+		vinstall docs/icons/linux/hicolor/${size}x${size}/apps/fresh.png 644 \
+			usr/share/icons/hicolor/${size}x${size}/apps
+	done
+}
