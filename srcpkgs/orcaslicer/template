@@ -28,12 +28,10 @@ post_patch() {
 	vsed -i 's/COMPONENTS system /COMPONENTS /g' CMakeLists.txt
 
 	# Fix GCC 14 strict compilation error with CGAL 5.6+ AABB_tree objects.
-	# We change the alias from a vector to a deque, and remove the vector-specific reserve() call.
-	vsed -i 's/using Trees = std::vector<Tree>;/using Trees = std::deque<Tree>;/g' src/libslic3r/CutSurface.cpp
-	vsed -i 's/result.reserve(models.size());/\/\/result.reserve(models.size());/g' src/libslic3r/CutSurface.cpp
-	
-	# Ensure the compiler knows what a deque is.
-	vsed -i '1i#include <deque>' src/libslic3r/CutSurface.cpp
+	# We avoid vector reallocation entirely by resizing once and assigning elements in-place.
+	# This bypasses the static_assert panic on the missing noexcept move constructor.
+	vsed -i 's/result.reserve(models.size());/size_t __idx = 0; result.resize(models.size());/g' src/libslic3r/CutSurface.cpp
+	vsed -i 's/result.emplace_back(std::move(tree));/result[__idx++] = std::move(tree);/g' src/libslic3r/CutSurface.cpp
 }
 
 post_install() {
