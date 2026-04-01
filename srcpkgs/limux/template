@@ -1,0 +1,39 @@
+# Template file for 'limux-bin'
+pkgname=limux-bin
+version=0.1.6
+revision=1
+archs="x86_64"
+build_style=fetch
+depends="gtk4 libadwaita webkitgtk6.0"
+short_desc="GPU-accelerated terminal multiplexer for Linux"
+maintainer="Viking Maker <vikingmaker@outlook.com>"
+license="MIT"
+homepage="https://github.com/am-will/limux"
+distfiles="https://github.com/am-will/limux/releases/download/v${version}/limux-${version}-linux-x86_64.tar.gz"
+checksum="3a6efd9316aaec34a33f5800cf933d37733e07879a8d7917682c677dc675772d "
+
+do_install() {
+    # 1. Install the main binary to /usr/bin/limux
+    vbin limux
+    
+    # 2. Install the Ghostty rendering library to /usr/lib (required for GPU accel)
+    if [ -f "libghostty.so" ]; then
+        vinstall libghostty.so 755 usr/lib
+    fi
+    
+    # 3. Install the desktop shortcut (so it shows up in your app launcher)
+    if [ -f "limux.desktop" ]; then
+        vinstall limux.desktop 644 usr/share/applications
+    fi
+    
+    # 4. Install icons if the tarball includes an icons directory
+    if [ -d "icons" ]; then
+        vmkdir usr/share/icons
+        cp -a icons/* ${DESTDIR}/usr/share/icons/
+    fi
+    
+    # 5. Install the license file
+    if [ -f "LICENSE" ]; then
+        vlicense LICENSE
+    fi
+}
