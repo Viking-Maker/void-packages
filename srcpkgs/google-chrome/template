@@ -11,7 +11,7 @@ maintainer="Michael Aldridge <maldridge@voidlinux.org>"
 license="custom:chrome"
 homepage="https://www.google.com/chrome/"
 distfiles="https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-${_channel}_${version}-1_amd64.deb"
-checksum=ab9dbab873fff677deb2cfd95ea60b9295ebd53b58ec8533e9e1110b2451e540  downloaded_file
+checksum=4dbd78d88a1e69a6036ba8e8adb99fca808790e23b2ea92d8610494ad7f57328
 
 skiprdeps="/opt/google/chrome/libqt5_shim.so /opt/google/chrome/libqt6_shim.so"
 repository=nonfree
