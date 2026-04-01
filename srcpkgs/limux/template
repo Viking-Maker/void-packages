@@ -43,11 +43,11 @@ do_install() {
 	fi
 	
 	# 4. Find and install the Desktop shortcut
-	if[ -f "limux.desktop" ]; then
+	if [ -f "limux.desktop" ]; then
 		vinstall limux.desktop 644 usr/share/applications
 	elif [ -f "share/applications/limux.desktop" ]; then
 		vinstall share/applications/limux.desktop 644 usr/share/applications
-	elif[ -f "usr/share/applications/limux.desktop" ]; then
+	elif [ -f "usr/share/applications/limux.desktop" ]; then
 		vinstall usr/share/applications/limux.desktop 644 usr/share/applications
 	fi
 	
@@ -55,7 +55,7 @@ do_install() {
 	if [ -d "icons" ]; then
 		vmkdir usr/share/icons
 		cp -a icons/* ${DESTDIR}/usr/share/icons/
-	elif[ -d "share/icons" ]; then
+	elif [ -d "share/icons" ]; then
 		vmkdir usr/share/icons
 		cp -a share/icons/* ${DESTDIR}/usr/share/icons/
 	elif [ -d "usr/share/icons" ]; then
