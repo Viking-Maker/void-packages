@@ -13,27 +13,32 @@ distfiles="https://github.com/am-will/limux/releases/download/v${version}/limux-
 checksum="3a6efd9316aaec34a33f5800cf933d37733e07879a8d7917682c677dc675772d "
 
 do_install() {
-    # 1. Install the main binary to /usr/bin/limux
-    vbin limux
-    
-    # 2. Install the Ghostty rendering library to /usr/lib (required for GPU accel)
-    if [ -f "libghostty.so" ]; then
-        vinstall libghostty.so 755 usr/lib
-    fi
-    
-    # 3. Install the desktop shortcut (so it shows up in your app launcher)
-    if [ -f "limux.desktop" ]; then
-        vinstall limux.desktop 644 usr/share/applications
-    fi
-    
-    # 4. Install icons if the tarball includes an icons directory
-    if [ -d "icons" ]; then
-        vmkdir usr/share/icons
-        cp -a icons/* ${DESTDIR}/usr/share/icons/
-    fi
-    
-    # 5. Install the license file
-    if [ -f "LICENSE" ]; then
-        vlicense LICENSE
-    fi
+	# Create necessary directory structure in $DESTDIR
+	vmkdir usr/bin
+	vmkdir usr/lib
+	vmkdir usr/share/applications
+	vmkdir usr/share/icons
+
+	# Copy the main binary
+	vcopy limux usr/bin/
+
+	# Copy the required Ghostty library to /usr/lib
+	if [ -f "libghostty.so" ]; then
+		vcopy libghostty.so usr/lib/
+	fi
+
+	# Copy the desktop entry
+	if [ -f "limux.desktop" ]; then
+		vcopy limux.desktop usr/share/applications/
+	fi
+
+	# Copy icons (maintaining folder structure)
+	if [ -d "icons" ]; then
+		vcopy "icons/*" usr/share/icons/
+	fi
+
+	# Handle license via the built-in helper
+	if [ -f "LICENSE" ]; then
+		vlicense LICENSE
+	fi
 }
