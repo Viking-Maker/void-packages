@@ -12,14 +12,11 @@ homepage="https://github.com/am-will/limux"
 distfiles="https://github.com/am-will/limux/releases/download/v${version}/limux-${version}-linux-x86_64.tar.gz"
 checksum="3a6efd9316aaec34a33f5800cf933d37733e07879a8d7917682c677dc675772d "
 
-# THIS IS THE FIX: Tell xbps-src the exact name of the extracted folder
 wrksrc="limux-${version}-linux-x86_64"
 
 do_install() {
-	# 'vbin' puts the file in /usr/bin and makes it executable (755)
 	vbin limux
 	
-	# 'vinstall' puts the file in the target dir with exact permissions
 	if [ -f "libghostty.so" ]; then
 		vinstall libghostty.so 755 usr/lib
 	fi
@@ -28,13 +25,12 @@ do_install() {
 		vinstall limux.desktop 644 usr/share/applications
 	fi
 	
-	# Handle the icons using standard bash copy to prevent wildcard errors
-	if[ -d "icons" ]; then
+	if [ -d "icons" ]; then
 		vmkdir usr/share/icons
 		cp -a icons/* ${DESTDIR}/usr/share/icons/
 	fi
 	
-	if [ -f "LICENSE" ]; then
+	if[ -f "LICENSE" ]; then
 		vlicense LICENSE
 	fi
 }
