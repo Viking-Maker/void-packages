@@ -1,0 +1,48 @@
+name: Get File Checksum
+
+on:
+  workflow_dispatch:
+    inputs:
+      file_url:
+        description: 'The URL of the file to check'
+        required: true
+        type: string
+      hash_type:
+        description: 'Type of hash (sha256, sha1, md5)'
+        required: true
+        default: 'sha256'
+        type: choice
+        options:
+          - sha256
+          - sha1
+          - md5
+
+jobs:
+  calculate-checksum:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download File
+        run: |
+          curl -L -o downloaded_file "${{ github.event.inputs.file_url }}"
+          echo "File downloaded successfully."
+
+      - name: Calculate Checksum
+        run: |
+          if [ "${{ github.event.inputs.hash_type }}" == "sha256" ]; then
+            sha256sum downloaded_file > hash.txt
+          elif [ "${{ github.event.inputs.hash_type }}" == "sha1" ]; then
+            sha1sum downloaded_file > hash.txt
+          else
+            md5sum downloaded_file > hash.txt
+          fi
+          
+          # Display the result in the logs
+          cat hash.txt
+          
+          # Add the result to the Workflow Summary (easy to read)
+          echo "### Checksum Results" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** ${{ github.event.inputs.file_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Algorithm:** ${{ github.event.inputs.hash_type }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat hash.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
