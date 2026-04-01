@@ -12,32 +12,28 @@ homepage="https://github.com/am-will/limux"
 distfiles="https://github.com/am-will/limux/releases/download/v${version}/limux-${version}-linux-x86_64.tar.gz"
 checksum="3a6efd9316aaec34a33f5800cf933d37733e07879a8d7917682c677dc675772d "
 
+# THIS IS THE FIX: Tell xbps-src the exact name of the extracted folder
+wrksrc="limux-${version}-linux-x86_64"
+
 do_install() {
-	# Create necessary directory structure in $DESTDIR
-	vmkdir usr/bin
-	vmkdir usr/lib
-	vmkdir usr/share/applications
-	vmkdir usr/share/icons
-
-	# Copy the main binary
-	vcopy limux usr/bin/
-
-	# Copy the required Ghostty library to /usr/lib
+	# 'vbin' puts the file in /usr/bin and makes it executable (755)
+	vbin limux
+	
+	# 'vinstall' puts the file in the target dir with exact permissions
 	if [ -f "libghostty.so" ]; then
-		vcopy libghostty.so usr/lib/
+		vinstall libghostty.so 755 usr/lib
 	fi
-
-	# Copy the desktop entry
-	if [ -f "limux.desktop" ]; then
-		vcopy limux.desktop usr/share/applications/
+	
+	if[ -f "limux.desktop" ]; then
+		vinstall limux.desktop 644 usr/share/applications
 	fi
-
-	# Copy icons (maintaining folder structure)
-	if [ -d "icons" ]; then
-		vcopy "icons/*" usr/share/icons/
+	
+	# Handle the icons using standard bash copy to prevent wildcard errors
+	if[ -d "icons" ]; then
+		vmkdir usr/share/icons
+		cp -a icons/* ${DESTDIR}/usr/share/icons/
 	fi
-
-	# Handle license via the built-in helper
+	
 	if [ -f "LICENSE" ]; then
 		vlicense LICENSE
 	fi
