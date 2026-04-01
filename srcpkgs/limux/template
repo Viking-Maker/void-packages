@@ -21,7 +21,7 @@ do_install() {
 		vinstall libghostty.so 755 usr/lib
 	fi
 	
-	if[ -f "limux.desktop" ]; then
+	if [ -f "limux.desktop" ]; then
 		vinstall limux.desktop 644 usr/share/applications
 	fi
 	
