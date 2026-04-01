@@ -1,36 +1,70 @@
-# Template file for 'limux-bin'
+# Template file for 'limux'
 pkgname=limux
 version=0.1.6
 revision=1
 archs="x86_64"
 build_style=fetch
-depends="gtk4 libadwaita libwebkitgtk60"
+# USE THESE EXACT NAMES FOR VOID LINUX:
+depends="gtk4 libadwaita webkitgtk6"
 short_desc="GPU-accelerated terminal multiplexer for Linux"
 maintainer="Viking Maker <vikingmaker@outlook.com>"
 license="MIT"
 homepage="https://github.com/am-will/limux"
 distfiles="https://github.com/am-will/limux/releases/download/v${version}/limux-${version}-linux-x86_64.tar.gz"
-checksum="3a6efd9316aaec34a33f5800cf933d37733e07879a8d7917682c677dc675772d "
+checksum="3a6efd9316aaec34a33f5800cf933d37733e07879a8d7917682c677dc675772d"
 
 wrksrc="limux-${version}-linux-x86_64"
 
 do_install() {
-	vbin limux
+	# 1. Print the directory tree to GitHub Actions logs
+	# If the build fails, look at your Action logs to see exactly where the files are!
+	echo "=== TARBALL CONTENTS ==="
+	ls -laR
+	echo "========================"
+
+	# 2. Find and install the limux binary
+	if [ -f "limux" ]; then
+		vbin limux
+	elif [ -f "bin/limux" ]; then
+		vbin bin/limux
+	elif [ -f "usr/bin/limux" ]; then
+		vbin usr/bin/limux
+	else
+		msg_error "Cannot find 'limux' binary in the tarball!\n"
+	fi
 	
-	if [ -f "libghostty.so" ]; then
+	# 3. Find and install the Ghostty library
+	if[ -f "libghostty.so" ]; then
 		vinstall libghostty.so 755 usr/lib
+	elif [ -f "lib/libghostty.so" ]; then
+		vinstall lib/libghostty.so 755 usr/lib
+	elif[ -f "usr/lib/libghostty.so" ]; then
+		vinstall usr/lib/libghostty.so 755 usr/lib
 	fi
 	
-	if [ -f "limux.desktop" ]; then
+	# 4. Find and install the Desktop shortcut
+	if[ -f "limux.desktop" ]; then
 		vinstall limux.desktop 644 usr/share/applications
+	elif [ -f "share/applications/limux.desktop" ]; then
+		vinstall share/applications/limux.desktop 644 usr/share/applications
+	elif[ -f "usr/share/applications/limux.desktop" ]; then
+		vinstall usr/share/applications/limux.desktop 644 usr/share/applications
 	fi
 	
+	# 5. Handle Icons
 	if [ -d "icons" ]; then
 		vmkdir usr/share/icons
 		cp -a icons/* ${DESTDIR}/usr/share/icons/
+	elif[ -d "share/icons" ]; then
+		vmkdir usr/share/icons
+		cp -a share/icons/* ${DESTDIR}/usr/share/icons/
+	elif [ -d "usr/share/icons" ]; then
+		vmkdir usr/share/icons
+		cp -a usr/share/icons/* ${DESTDIR}/usr/share/icons/
 	fi
 	
-	if [ -f "LICENSE" ]; then
+	# 6. License
+	if[ -f "LICENSE" ]; then
 		vlicense LICENSE
 	fi
 }
