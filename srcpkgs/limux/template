@@ -1,5 +1,5 @@
 # Template file for 'limux-bin'
-pkgname=limux-bin
+pkgname=limux
 version=0.1.6
 revision=1
 archs="x86_64"
