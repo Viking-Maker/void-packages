@@ -64,7 +64,7 @@ do_install() {
 	fi
 	
 	# 6. License
-	if[ -f "LICENSE" ]; then
+	if [ -f "LICENSE" ]; then
 		vlicense LICENSE
 	fi
 }
