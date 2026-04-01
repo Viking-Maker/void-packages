@@ -1,6 +1,6 @@
 # Template file for 'fresh-editor'
 pkgname=fresh-editor
-version=0.2.20
+version=0.2.21
 revision=1
 build_style=cargo
 hostmakedepends="clang pkg-config"
@@ -13,7 +13,6 @@ homepage="https://sinelaw.github.io/fresh/"
 # We use the specific source tarball mentioned in the AUR for better stability
 distfiles="https://github.com/sinelaw/fresh/releases/download/v${version}/fresh-editor-${version}-source.tar.gz"
 checksum=a68a90eca2a4cc7a75a6c257dc1dc3b72038cd0cf2db4c1bdde1e255c2ebc75f
-# The AUR says the folder inside the zip is named fresh-0.2.20
 wrksrc="fresh-${version}"
 
 export CC=clang
